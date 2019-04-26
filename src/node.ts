@@ -6,38 +6,24 @@ export interface Node {
   relationships: NodeRelationship[];
   addRelationship(rel: NodeRelationship): void;
   removeRelationship(relationshipID: number): void;
-  run(): Output[];
-}
-
-export interface CommandAttributes {
-  maxInputs: number;
-  minInputs: number;
-  maxOutputs: number;
-  minOutputs: number;
-}
-
-export interface NodeRelationship {
-  node: Node;
-  type: NodeRelationshipType;
-  index: number;
-}
-
-export enum NodeRelationshipType {
-  INPUT,
-  OUTPUT
+  run(): Data[];
 }
 
 export class EtlNode implements Node {
   id: number;
   title: string;
   command: Command;
+  inputs: Data[];
   relationships: NodeRelationship[];
+  status: NodeStatus;
 
-  constructor(id: number, title: string, command: Command) {
+  constructor(id: number, title: string, command: Command, inputs?: Data[]) {
     this.id = id;
     this.command = command;
     this.title = title;
+    this.inputs = inputs || [];
     this.relationships = [];
+    this.status = NodeStatus.NOT_STARTED;
   }
 
   addRelationship(rel: NodeRelationship): void {
@@ -46,33 +32,35 @@ export class EtlNode implements Node {
 
   removeRelationship(relationshipID: number): void {
     this.relationships = this.relationships.filter(
-      rel => rel.id !== relationshipID
+      rel => rel.node.id !== relationshipID
     );
   }
 
-  run(): Output[] {
-    return this.command.execute();
+  run(): Data[] {
+    this.status = NodeStatus.RUNNING;
+    const result = this.command.execute(this.inputs);
+    this.status = NodeStatus.FINISHED;
+    return result;
   }
 }
 
 export interface Command {
-  execute(): Output[];
+  execute(inputs: Data[]): Data[];
 }
 
-abstract class Processor {
-  attributes: CommandAttributes;
-  inputs: Input[];
+abstract class Processor implements Command {
+  attributes: ProcessorAttributes;
+  inputs: Data[];
   parameter: Parameter;
-  constructor(inputs: Input[], attr: CommandAttributes, parameter: Parameter) {
-    this.inputs = inputs;
+  constructor(attr: ProcessorAttributes, parameter: Parameter) {
     this.attributes = attr;
     this.parameter = parameter;
   }
-  abstract execute(): Output[];
+  abstract execute(inputs: Data[]): Data[];
 }
 
 abstract class AbstractTransformer extends Processor {
-  execute(): Output[] {
+  execute(inputs: Data[]): Data[] {
     // loop all data & call _transform
     throw new Error("Method not implemented.");
   }
@@ -81,13 +69,13 @@ abstract class AbstractTransformer extends Processor {
 
 abstract class AbstractReader extends Processor {
   constructor(parameter: ReaderParameter) {
-    const attr: CommandAttributes = {
+    const attr: ProcessorAttributes = {
       minInputs: 0,
       maxInputs: 0,
       minOutputs: 1,
       maxOutputs: 1
     };
-    super([], attr, parameter);
+    super(attr, parameter);
   }
 }
 
@@ -95,7 +83,7 @@ export class FtpReader extends AbstractReader {
   constructor(parameter: FtpReaderParameter) {
     super(parameter);
   }
-  execute(): Output[] {
+  execute(inputs: Data[]): Data[] {
     throw new Error("Not implemented");
   }
 }
@@ -113,14 +101,14 @@ export interface FtpReaderParameter extends ReaderParameter {
 }
 
 export class UpperCaseTransformer extends AbstractTransformer {
-  constructor(inputs: Input[], parameter: TransformerParameter) {
-    const attr: CommandAttributes = {
+  constructor(parameter: TransformerParameter) {
+    const attr: ProcessorAttributes = {
       minInputs: 1,
       maxInputs: 1,
       minOutputs: 1,
       maxOutputs: 1
     };
-    super(inputs, attr, parameter);
+    super(attr, parameter);
   }
   _transform(text: string): string {
     return text.toUpperCase();
@@ -129,14 +117,14 @@ export class UpperCaseTransformer extends AbstractTransformer {
 
 export class HarmonizeTransformer extends AbstractTransformer {
   dict: Dictionary;
-  constructor(inputs: Input[], parameter: DictionaryTransformerParameter) {
-    const attr: CommandAttributes = {
+  constructor(parameter: DictionaryTransformerParameter) {
+    const attr: ProcessorAttributes = {
       minInputs: 1,
       maxInputs: 1,
       minOutputs: 1,
       maxOutputs: 1
     };
-    super(inputs, attr, parameter);
+    super(attr, parameter);
   }
   _transform(text: string): string {
     this.dict.entries.forEach(e => {
@@ -145,6 +133,24 @@ export class HarmonizeTransformer extends AbstractTransformer {
     });
     return text;
   }
+}
+
+export interface ProcessorAttributes {
+  maxInputs: number;
+  minInputs: number;
+  maxOutputs: number;
+  minOutputs: number;
+}
+
+export interface NodeRelationship {
+  node: Node;
+  type: NodeRelationshipType;
+  index: number;
+}
+
+export enum NodeRelationshipType {
+  INPUT,
+  OUTPUT
 }
 
 export interface Parameter {}
@@ -172,16 +178,14 @@ export interface DictionaryEntry {
   method: TextReplacerMethod;
 }
 
-export interface Input {
-  data: Data[];
-}
-
-export interface Output {
-  data: Data[];
-  nextNode?: Node;
-}
-
 export interface Data {
   base: any;
   meta: any;
+}
+
+export enum NodeStatus {
+  NOT_STARTED,
+  RUNNING,
+  FINISHED,
+  ERROR
 }

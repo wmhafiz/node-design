@@ -1,22 +1,4 @@
-import { Input, Node } from "./node";
-
-export interface WorkspaceManager {
-  addWorkspace(workspace: Workspace): void;
-  removeWorkspace(workspace: Workspace): void;
-}
-
-export class BasicWorkspaceManager implements WorkspaceManager {
-  workspaces: Workspace[];
-  constructor() {
-    this.workspaces = [];
-  }
-  addWorkspace(workspace: Workspace): void {
-    this.workspaces.push(workspace);
-  }
-  removeWorkspace(workspace: Workspace): void {
-    this.workspaces = this.workspaces.filter(ws => ws.id !== workspace.id);
-  }
-}
+import { Node } from "./node";
 
 export interface Workspace {
   id: number;
@@ -58,21 +40,41 @@ export class EtlWorkspace implements Workspace {
     this.nodes = this.nodes.filter(n => n.id !== node.id);
   }
   start(): void {
-    let inputs: Input[] = [];
-    do {
-      const outputs = this.currNode.run();
-      inputs = [{ data: outputs[0].data }];
-      this.currNode = outputs[0].nextNode;
-    } while (this.currNode);
+    while (this.currNode) {
+      this.currNode.run();
+      this.currNode = this.currNode.relationships[0].node;
+      // TODO: repeat recursively for all relationships
+    }
   }
   pause(): void {
     // instruct worker to stop subscribing to the message broker
+    throw new Error("Method not implemented.");
   }
   resume(): void {
-    this.currNode.run();
+    // instruct worker to start subscribing again
+    throw new Error("Method not implemented.");
   }
   stop(): void {
     // clear queue
     // reset currNode
+    throw new Error("Method not implemented.");
+  }
+}
+
+export interface WorkspaceManager {
+  addWorkspace(workspace: Workspace): void;
+  removeWorkspace(workspace: Workspace): void;
+}
+
+export class BasicWorkspaceManager implements WorkspaceManager {
+  workspaces: Workspace[];
+  constructor() {
+    this.workspaces = [];
+  }
+  addWorkspace(workspace: Workspace): void {
+    this.workspaces.push(workspace);
+  }
+  removeWorkspace(workspace: Workspace): void {
+    this.workspaces = this.workspaces.filter(ws => ws.id !== workspace.id);
   }
 }

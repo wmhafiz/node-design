@@ -1,26 +1,22 @@
 import {
+  Data,
   EtlNode,
   HarmonizeTransformer,
-  Input,
   UpperCaseTransformer,
   FtpReader,
   NodeRelationshipType
 } from "./node";
 import { TextReplacerMethod } from "./text-replacer";
 
-const inputs: Input[] = [
-  {
-    data: [
-      {
-        base: {
-          brn: "123",
-          companyName: "Telekom Malysia Sendirian Berhad"
-        },
-        meta: {}
-      }
-    ]
-  }
-];
+// const inputs: Data[] = [
+//   {
+//     base: {
+//       brn: '123',
+//       companyName: 'Telekom Malysia Sendirian Berhad',
+//     },
+//     meta: {},
+//   },
+// ];
 
 const dict = {
   entries: [
@@ -49,38 +45,37 @@ export const ftpReader = new EtlNode(
     destPath: "/home/dest_path"
   })
 );
+const ftpReaderOutput = ftpReader.run();
 
 export const upperCaseNode = new EtlNode(
   2,
   "Uppercase Company Name",
-  new UpperCaseTransformer(inputs, {
+  new UpperCaseTransformer({
     destField: "companyName_upper",
     sourceField: "companyName"
-  })
+  }),
+  ftpReaderOutput
 );
-
-export const harmonizeNode = new EtlNode(
-  3,
-  "Harmonize Company Name",
-  new HarmonizeTransformer(inputs, {
-    destField: "companyName_std",
-    dict,
-    sourceField: "companyName_upper"
-  })
-);
-
 ftpReader.addRelationship({
   node: upperCaseNode,
   type: NodeRelationshipType.OUTPUT,
   index: 1
 });
+const upperCaseOutput = upperCaseNode.run();
 
+export const harmonizeNode = new EtlNode(
+  3,
+  "Harmonize Company Name",
+  new HarmonizeTransformer({
+    destField: "companyName_std",
+    dict,
+    sourceField: "companyName_upper"
+  }),
+  upperCaseOutput
+);
 upperCaseNode.addRelationship({
   node: harmonizeNode,
   type: NodeRelationshipType.OUTPUT,
   index: 1
 });
-
-const ftpReaderOutput = ftpReader.run();
-const upperCaseOutput = upperCaseNode.run();
-const harmonizedOutput = harmonizeNode.run();
+const finalOutput = harmonizeNode.run();
