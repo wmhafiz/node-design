@@ -1,7 +1,7 @@
-import { harmonizeNode, upperCaseNode, ftpReader } from "./node.test";
-import { BasicWorkspaceManager, EtlWorkspace } from "./workspace";
+import { harmonizeNode, upperCaseNode, ftpReader } from './node.test';
+import { EtlWorkspace } from './workspace';
 
-const ws = new EtlWorkspace(1, "DOSM Trade Job");
+export const ws = new EtlWorkspace(1, 'DOSM Trade Job');
 ws.addNode(ftpReader);
 ws.addNode(upperCaseNode);
 ws.addNode(harmonizeNode);
@@ -10,6 +10,3 @@ ws.addNode(harmonizeNode);
 ws.start();
 ws.pause();
 ws.resume();
-
-const manager = new BasicWorkspaceManager();
-manager.addWorkspace(ws);

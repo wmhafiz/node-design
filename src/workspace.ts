@@ -1,4 +1,4 @@
-import { Node } from "./node";
+import { Node } from './node';
 
 export interface Workspace {
   id: number;
@@ -48,33 +48,15 @@ export class EtlWorkspace implements Workspace {
   }
   pause(): void {
     // instruct worker to stop subscribing to the message broker
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   resume(): void {
     // instruct worker to start subscribing again
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   stop(): void {
     // clear queue
     // reset currNode
-    throw new Error("Method not implemented.");
-  }
-}
-
-export interface WorkspaceManager {
-  addWorkspace(workspace: Workspace): void;
-  removeWorkspace(workspace: Workspace): void;
-}
-
-export class BasicWorkspaceManager implements WorkspaceManager {
-  workspaces: Workspace[];
-  constructor() {
-    this.workspaces = [];
-  }
-  addWorkspace(workspace: Workspace): void {
-    this.workspaces.push(workspace);
-  }
-  removeWorkspace(workspace: Workspace): void {
-    this.workspaces = this.workspaces.filter(ws => ws.id !== workspace.id);
+    throw new Error('Method not implemented.');
   }
 }

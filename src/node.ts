@@ -1,4 +1,4 @@
-import { TextReplacerFactory, TextReplacerMethod } from "./text-replacer";
+import { TextReplacerFactory, TextReplacerMethod } from './text-replacer';
 
 export interface Node {
   id: number;
@@ -62,7 +62,7 @@ abstract class Processor implements Command {
 abstract class AbstractTransformer extends Processor {
   execute(inputs: Data[]): Data[] {
     // loop all data & call _transform
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   abstract _transform(text: string): string;
 }
@@ -73,7 +73,7 @@ abstract class AbstractReader extends Processor {
       minInputs: 0,
       maxInputs: 0,
       minOutputs: 1,
-      maxOutputs: 1
+      maxOutputs: 1,
     };
     super(attr, parameter);
   }
@@ -84,7 +84,7 @@ export class FtpReader extends AbstractReader {
     super(parameter);
   }
   execute(inputs: Data[]): Data[] {
-    throw new Error("Not implemented");
+    throw new Error('Not implemented');
   }
 }
 
@@ -106,7 +106,7 @@ export class UpperCaseTransformer extends AbstractTransformer {
       minInputs: 1,
       maxInputs: 1,
       minOutputs: 1,
-      maxOutputs: 1
+      maxOutputs: 1,
     };
     super(attr, parameter);
   }
@@ -122,7 +122,7 @@ export class HarmonizeTransformer extends AbstractTransformer {
       minInputs: 1,
       maxInputs: 1,
       minOutputs: 1,
-      maxOutputs: 1
+      maxOutputs: 1,
     };
     super(attr, parameter);
   }
@@ -150,7 +150,7 @@ export interface NodeRelationship {
 
 export enum NodeRelationshipType {
   INPUT,
-  OUTPUT
+  OUTPUT,
 }
 
 export interface Parameter {}
@@ -187,5 +187,5 @@ export enum NodeStatus {
   NOT_STARTED,
   RUNNING,
   FINISHED,
-  ERROR
+  ERROR,
 }
