@@ -1,11 +1,14 @@
 import { Node } from './node';
 
-export interface Workspace {
+export interface Controller {
   id: number;
   title: string;
   nodes: Node[];
+  relationships: NodeRelationship[];
   addNode(node: Node): void;
   removeNode(node: Node): void;
+  addRelationship(rel: NodeRelationship): void;
+  removeRelationship(relationshipID: number): void;
 
   start(): void;
   pause(): void;
@@ -20,7 +23,7 @@ export interface NodeRelationship {
   destNode: Node;
 }
 
-export class EtlWorkspace implements Workspace {
+export class EtlController implements Controller {
   id: number;
   title: string;
   nodes: Node[];
@@ -38,6 +41,12 @@ export class EtlWorkspace implements Workspace {
   }
   removeNode(node: Node): void {
     this.nodes = this.nodes.filter(n => n.id !== node.id);
+  }
+  addRelationship(rel: NodeRelationship): void {
+    throw new Error('Method not implemented.');
+  }
+  removeRelationship(relationshipID: number): void {
+    throw new Error('Method not implemented.');
   }
   start(): void {
     while (this.currNode) {

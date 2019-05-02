@@ -1,8 +1,8 @@
-import { Workspace } from './workspace';
+import { Controller } from './controller';
 
 export interface Pipeline {
-  addWorkspace(workspace: Workspace): void;
-  removeWorkspace(workspace: Workspace): void;
+  addWorkspace(controller: Controller): void;
+  removeWorkspace(controller: Controller): void;
 }
 
 export interface StartablePipeline {
@@ -15,15 +15,15 @@ export interface SchedulablePipeline {
 
 export class BasicPipeline
   implements Pipeline, StartablePipeline, SchedulablePipeline {
-  workspaces: Workspace[];
+  controllers: Controller[];
   constructor() {
-    this.workspaces = [];
+    this.controllers = [];
   }
-  addWorkspace(workspace: Workspace): void {
-    this.workspaces.push(workspace);
+  addWorkspace(controller: Controller): void {
+    this.controllers.push(controller);
   }
-  removeWorkspace(workspace: Workspace): void {
-    this.workspaces = this.workspaces.filter(ws => ws.id !== workspace.id);
+  removeWorkspace(controller: Controller): void {
+    this.controllers = this.controllers.filter(ws => ws.id !== controller.id);
   }
   start(): void {
     throw new Error('Method not implemented.');

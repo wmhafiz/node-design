@@ -1,5 +1,5 @@
 import { BasicPipeline } from './pipeline';
-import { ws } from './workspace.test';
+import { ws } from './controller.test';
 
 const pipeline = new BasicPipeline();
 

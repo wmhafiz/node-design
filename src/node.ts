@@ -1,11 +1,9 @@
+import { FtpParameter } from './node';
 import { TextReplacerFactory, TextReplacerMethod } from './text-replacer';
 
 export interface Node {
   id: number;
   title: string;
-  relationships: NodeRelationship[];
-  addRelationship(rel: NodeRelationship): void;
-  removeRelationship(relationshipID: number): void;
   run(): Data[];
 }
 
@@ -68,7 +66,7 @@ abstract class AbstractTransformer extends Processor {
 }
 
 abstract class AbstractReader extends Processor {
-  constructor(parameter: ReaderParameter) {
+  constructor(parameter: ServiceParameter) {
     const attr: ProcessorAttributes = {
       minInputs: 0,
       maxInputs: 0,
@@ -79,8 +77,21 @@ abstract class AbstractReader extends Processor {
   }
 }
 
-export class FtpReader extends AbstractReader {
-  constructor(parameter: FtpReaderParameter) {
+abstract class AbstractWriter extends Processor {
+  constructor(parameter: ServiceParameter) {
+    const attr: ProcessorAttributes = {
+      minInputs: 1,
+      maxInputs: 1,
+      minOutputs: 0,
+      maxOutputs: 0,
+    };
+    super(attr, parameter);
+  }
+}
+
+export class MySqlReader extends AbstractReader {
+  mysqlParameter: MySQLParameter;
+  constructor(parameter: MySQLParameter) {
     super(parameter);
   }
   execute(inputs: Data[]): Data[] {
@@ -88,16 +99,51 @@ export class FtpReader extends AbstractReader {
   }
 }
 
-export interface ReaderParameter extends Parameter {
+export class MySqlWriter extends AbstractWriter {
+  mysqlParameter: MySQLParameter;
+  constructor(parameter: MySQLParameter) {
+    super(parameter);
+  }
+  execute(inputs: Data[]): Data[] {
+    throw new Error('Not implemented');
+  }
+}
+
+export class FtpReader extends AbstractReader {
+  ftpParameter: FtpParameter;
+  constructor(parameter: FtpParameter) {
+    super(parameter);
+  }
+  execute(inputs: Data[]): Data[] {
+    throw new Error('Not implemented');
+  }
+}
+
+export class FtpWriter extends AbstractWriter {
+  ftpParameter: FtpParameter;
+  constructor(parameter: FtpParameter) {
+    super(parameter);
+  }
+  execute(inputs: Data[]): Data[] {
+    throw new Error('Not implemented');
+  }
+}
+
+export interface ServiceParameter extends Parameter {
   host: string;
   username: string;
   password: string;
   port: number;
 }
 
-export interface FtpReaderParameter extends ReaderParameter {
+export interface FtpParameter extends ServiceParameter {
   sourcePath: string;
   destPath: string;
+}
+
+export interface MySQLParameter extends ServiceParameter {
+  tableName: string;
+  prefix: string;
 }
 
 export class UpperCaseTransformer extends AbstractTransformer {
@@ -116,7 +162,6 @@ export class UpperCaseTransformer extends AbstractTransformer {
 }
 
 export class HarmonizeTransformer extends AbstractTransformer {
-  dict: Dictionary;
   constructor(parameter: DictionaryTransformerParameter) {
     const attr: ProcessorAttributes = {
       minInputs: 1,
@@ -127,7 +172,7 @@ export class HarmonizeTransformer extends AbstractTransformer {
     super(attr, parameter);
   }
   _transform(text: string): string {
-    this.dict.entries.forEach(e => {
+    this.parameter.dict.entries.forEach(e => {
       const replacer = TextReplacerFactory.create(e.method);
       if (text === e.key1) return replacer.replace(text, e.key1, e.key2);
     });
